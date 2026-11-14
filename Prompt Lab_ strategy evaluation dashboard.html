@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prompt Lab: strategy evaluation dashboard</title>
+<style>
+:root{--bg:#F4F1FA;--surface:#FFFFFF;--ink:#1E1B2E;--muted:#5E5A73;--line:#E2DCF0;--violet:#7C4DDB;--deep:#3B1F6E;--coral:#FF6B57;--vr:124,77,219;--warn:#FFF1CC;--warnink:#5A4100;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15111F;--surface:#211B33;--ink:#F1EEF8;--muted:#B0AAC8;--line:#352D4F;--violet:#A084F0;--deep:#CBBCF7;--vr:160,132,240;--warn:#3A2E0E;--warnink:#F5D98A}}
+:root[data-theme="dark"]{--bg:#15111F;--surface:#211B33;--ink:#F1EEF8;--muted:#B0AAC8;--line:#352D4F;--violet:#A084F0;--deep:#CBBCF7;--vr:160,132,240;--warn:#3A2E0E;--warnink:#F5D98A}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Calibri,"Segoe UI",system-ui,sans-serif}
+h1,h2,h3{font-family:Cambria,Georgia,serif;line-height:1.15;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 20px 48px}
+header h1{font-size:clamp(28px,5vw,40px);color:var(--deep)}
+header p{margin:6px 0 0;color:var(--muted);max-width:60ch}
+.banner{margin:18px 0 0;padding:10px 14px;border-radius:10px;background:var(--warn);color:var(--warnink);font-size:15px}
+.tabs{display:flex;gap:4px;margin:22px 0 18px;overflow-x:auto;border-bottom:1px solid var(--line)}
+.tabs button{background:none;border:0;padding:10px 14px;font:inherit;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--deep);font-weight:700;border-color:var(--coral)}
+button:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--violet);outline-offset:2px}
+.panel{background:var(--surface);border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(59,31,110,.12)}
+.panel h2{font-size:22px;color:var(--deep);margin-bottom:4px}
+.sub{color:var(--muted);margin:0 0 16px;max-width:70ch}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.seg button{background:none;border:0;padding:8px 14px;font:inherit;color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--violet);color:#fff}
+.scroll{overflow-x:auto}
+table{border-collapse:separate;border-spacing:4px;width:100%;min-width:640px}
+th{font-weight:600;font-size:14px;padding:6px;text-align:center;vertical-align:bottom}
+th.rl{text-align:right;white-space:nowrap}
+td.c{height:48px;text-align:center;border-radius:8px;font-weight:700;font-variant-numeric:tabular-nums}
+td.c.best{outline:3px solid var(--coral);outline-offset:-1px}
+td.c.na{background:var(--bg);color:var(--muted);font-weight:400}
+tfoot td{padding:8px 6px;text-align:center;font-size:14px;color:var(--deep);font-weight:700}
+tfoot th{color:var(--muted)}
+.note{color:var(--muted);font-size:14px;margin:14px 0 0}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+select{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+svg text{fill:var(--muted);font-size:12px}
+svg .ax{stroke:var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px;font-size:14px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px}
+.bars td{padding:6px;vertical-align:middle}
+.bar{position:relative;height:16px;border-radius:8px;background:var(--bg)}
+.bar b{position:absolute;left:0;top:0;bottom:0;border-radius:8px}
+.bars td.n{white-space:nowrap;font-weight:600}
+.bars td.v{font-size:14px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+textarea{width:100%;min-height:260px;font:13px/1.5 Consolas,"Courier New",monospace;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.btn{font:inherit;padding:9px 16px;border-radius:9px;border:1px solid var(--violet);background:var(--violet);color:#fff;cursor:pointer;font-weight:600}
+.btn.alt{background:none;color:var(--violet)}
+.msg{min-height:1.5em;font-size:14px;margin:10px 0 0}
+.msg.err{color:#C0392B}.msg.ok{color:#1B7F69}
+.tpl{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.tpl div{border:1px solid var(--line);border-radius:12px;padding:14px}
+.tpl h3{font-size:17px;margin-bottom:8px}
+.tpl pre{margin:0 0 10px;white-space:pre-wrap;font:13px/1.5 Consolas,"Courier New",monospace;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Prompt Lab</h1>
+  <p>Compare six prompting strategies across five tasks: quality, token cost, latency and variance in one place.</p>
+  <div class="banner" id="banner" hidden>You’re looking at demo data: illustrative numbers, not real results. Paste your own results in the Data tab to replace them.</div>
+</header>
+<nav class="tabs" role="tablist" id="tabs"></nav>
+<main id="view"></main>
+</div>
+<script>
+const COLS=["task","strategy","quality","input_tokens","output_tokens","latency_p50","latency_p95","quality_sd"];
+const TASKS=["Reasoning","Summarisation","Classification","Structured extraction","Creative writing"];
+const STRATS=["Zero-shot","Few-shot","Chain-of-thought","Self-consistency","Role prompting","Structured output"];
+const SCOL=["#7C4DDB","#FF6B57","#F5B83D","#1FA58A","#2F7FD1","#D6457F"];
+const TABS=[["heat","Heatmap"],["cost","Cost vs. quality"],["var","Latency and variance"],["data","Data"],["tpl","Prompt templates"]];
+const METRICS={q:{label:"Quality",fn:r=>r.quality,note:"Mean task score (0 to 1). Higher is better."},
+ c:{label:"Quality per 1k tokens",fn:r=>r.quality/(r.input_tokens+r.output_tokens)*1000,note:"Quality divided by total tokens, scaled to 1,000 tokens. Rewards cheap prompts."},
+ t:{label:"Quality per second",fn:r=>r.quality/r.latency_p50,note:"Quality divided by median latency in seconds. Rewards fast prompts."}};
+const TEMPLATES={"Zero-shot":"Task: {{task}}\nInput: {{input}}\nAnswer:",
+"Few-shot":"Examples of the task:\n\nInput: {{example_1_input}}\nOutput: {{example_1_output}}\n\nInput: {{example_2_input}}\nOutput: {{example_2_output}}\n\nInput: {{input}}\nOutput:",
+"Chain-of-thought":"Task: {{task}}\nInput: {{input}}\nThink step by step, then end with a line:\nFinal answer: <answer>",
+"Self-consistency":"Run the chain-of-thought prompt {{N}} times at temperature {{T}}.\nExtract each “Final answer” and return the most common one.",
+"Role prompting":"You are {{expert_role}}.\nTask: {{task}}\nInput: {{input}}\nAnswer:",
+"Structured output":"Task: {{task}}\nInput: {{input}}\nReturn only valid JSON matching this schema:\n{{json_schema}}"};
+let rows=[],demo=true,tab="heat",metric="q",selTask=null,msg=null;
+
+function demoRows(){
+ const q={"Reasoning":[.52,.58,.74,.80,.55,.56],"Summarisation":[.38,.41,.39,.40,.40,.37],"Classification":[.81,.88,.84,.86,.83,.85],"Structured extraction":[.62,.74,.66,.69,.67,.86],"Creative writing":[.58,.62,.60,.63,.70,.52]};
+ const fin=[120,420,150,150,160,200],fout=[50,55,240,1200,60,70],tf=[1,2.2,.6,1.3,2];
+ const out=[];
+ TASKS.forEach((t,ti)=>STRATS.forEach((s,si)=>{
+  const j=Math.sin(ti*7+si*3)*.015,o=Math.round(fout[si]*tf[ti]),i=Math.round(fin[si]*tf[ti]),p50=+(.6+o/110).toFixed(2);
+  out.push({task:t,strategy:s,quality:+(q[t][si]+j).toFixed(3),input_tokens:i,output_tokens:o,latency_p50:p50,latency_p95:+(p50*1.6).toFixed(2),quality_sd:+((si==3?.015:.03)+(ti==4?.02:0)+Math.abs(j)/2).toFixed(3)});
+ }));
+ return out;
+}
+function load(){try{const j=localStorage.getItem("promptlab");if(j){const o=JSON.parse(j);if(Array.isArray(o.rows)&&o.rows.length){rows=o.rows;demo=!!o.demo;return}}}catch(e){}rows=demoRows();demo=true}
+function save(){try{localStorage.setItem("promptlab",JSON.stringify({rows,demo}))}catch(e){}}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uniq=(k,pref)=>{const s=[...new Set(rows.map(r=>r[k]))];return s.sort((a,b)=>{const x=pref.indexOf(a),y=pref.indexOf(b);return (x<0?99:x)-(y<0?99:y)})};
+const tasks=()=>uniq("task",TASKS),strats=()=>uniq("strategy",STRATS);
+const scol=s=>SCOL[Math.max(0,STRATS.indexOf(s))%SCOL.length];
+function agg(fn){const m={};rows.forEach(r=>{const k=r.task+"|"+r.strategy;(m[k]=m[k]||[]).push(fn(r))});for(const k in m)m[k]=m[k].reduce((a,b)=>a+b,0)/m[k].length;return m}
+function avgBy(t,s,key){const a=rows.filter(r=>r.task===t&&r.strategy===s);return a.length?a.reduce((x,r)=>x+r[key],0)/a.length:null}
+
+function heat(){
+ const m=agg(METRICS[metric].fn),T=tasks(),S=strats();
+ const mx={},mn={},best={};
+ T.forEach(t=>{const v=S.map(s=>m[t+"|"+s]).filter(x=>x!=null);mx[t]=Math.max(...v);mn[t]=Math.min(...v);best[t]=S.find(s=>m[t+"|"+s]===mx[t])});
+ const seg=Object.keys(METRICS).map(k=>`<button aria-pressed="${k===metric}" data-m="${k}">${METRICS[k].label}</button>`).join("");
+ let h=`<div class="panel"><h2>Which strategy wins each task?</h2><p class="sub">Darker cells score higher within their task. The outlined cell is the best strategy for that task under the selected criterion.</p>
+ <div class="seg" role="group" aria-label="Criterion">${seg}</div><div class="scroll"><table><thead><tr><th></th>${T.map(t=>`<th>${esc(t)}</th>`).join("")}</tr></thead><tbody>`;
+ S.forEach(s=>{h+=`<tr><th class="rl" scope="row">${esc(s)}</th>`+T.map(t=>{const v=m[t+"|"+s];if(v==null)return`<td class="c na">no data</td>`;
+  const n=mx[t]===mn[t]?1:(v-mn[t])/(mx[t]-mn[t]),a=.1+.85*n;
+  return`<td class="c${v===mx[t]?" best":""}" style="background:rgba(var(--vr),${a.toFixed(2)});color:${a>.5?"#fff":"var(--ink)"}">${v.toFixed(2)}</td>`}).join("")+`</tr>`});
+ h+=`</tbody><tfoot><tr><th class="rl" scope="row">Best</th>${T.map(t=>`<td>${esc(best[t])}</td>`).join("")}</tr></tfoot></table></div><p class="note">${METRICS[metric].note} ${rows.length} result rows loaded.</p></div>`;
+ return h}
+
+function taskSel(){const T=tasks();if(!T.includes(selTask))selTask=T[0];return`<div class="row"><label for="ts">Task</label><select id="ts">${T.map(t=>`<option${t===selTask?" selected":""}>${esc(t)}</option>`).join("")}</select></div>`}
+
+function cost(){
+ const pts=rows.filter(r=>r.task===selTask).map(r=>({s:r.strategy,x:r.input_tokens+r.output_tokens,y:r.quality}));
+ const W=640,H=340,L=56,R=20,Tp=16,B=46,xm=Math.max(...pts.map(p=>p.x),1)*1.08,ys=pts.map(p=>p.y),y0=Math.max(0,Math.min(...ys)-.08),y1=Math.min(1,Math.max(...ys)+.06);
+ const X=v=>L+v/xm*(W-L-R),Y=v=>Tp+(1-(v-y0)/((y1-y0)||1))*(H-Tp-B);
+ let g="";for(let i=0;i<=4;i++){const yv=y0+(y1-y0)*i/4,xv=xm*i/4;g+=`<line class="ax" x1="${L}" x2="${W-R}" y1="${Y(yv)}" y2="${Y(yv)}"/><text x="${L-8}" y="${Y(yv)+4}" text-anchor="end">${yv.toFixed(2)}</text><text x="${X(xv)}" y="${H-B+18}" text-anchor="middle">${Math.round(xv)}</text>`}
+ const sorted=[...pts].sort((a,b)=>a.x-b.x||b.y-a.y);let top=-1;const fr=[];sorted.forEach(p=>{if(p.y>top){fr.push(p);top=p.y}});
+ let path="";fr.forEach((p,i)=>{path+=(i?`H${X(p.x)}V${Y(p.y)}`:`M${X(p.x)},${Y(p.y)}`)});
+ const dots=pts.map(p=>`<circle cx="${X(p.x)}" cy="${Y(p.y)}" r="7" fill="${scol(p.s)}" stroke="var(--surface)" stroke-width="2"><title>${esc(p.s)}: quality ${p.y.toFixed(2)}, ${p.x} tokens</title></circle>`).join("");
+ return`<div class="panel"><h2>What does extra quality cost?</h2><p class="sub">Each dot is one strategy. Up and to the left is better. The line joins the strategies nobody beats on both quality and tokens.</p>${taskSel()}
+ <svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Scatter plot of quality against total tokens">${g}<path d="${path}" fill="none" stroke="var(--coral)" stroke-width="2" stroke-dasharray="5 4"/>${dots}
+ <text x="${(L+W-R)/2}" y="${H-6}" text-anchor="middle">Total tokens per call</text><text transform="translate(14 ${(Tp+H-B)/2}) rotate(-90)" text-anchor="middle">Quality</text></svg>
+ <div class="legend">${strats().map(s=>`<span><i style="background:${scol(s)}"></i>${esc(s)}</span>`).join("")}</div></div>`}
+
+function variance(){
+ const S=strats(),d=S.map(s=>({s,p50:avgBy(selTask,s,"latency_p50"),p95:avgBy(selTask,s,"latency_p95"),sd:avgBy(selTask,s,"quality_sd")})).filter(r=>r.p50!=null);
+ const mp=Math.max(...d.map(r=>r.p95),1),ms=Math.max(...d.map(r=>r.sd),.001);
+ return`<div class="panel"><h2>How fast and how consistent?</h2><p class="sub">Latency: dark bar is the median, light bar reaches the 95th percentile. Variance: standard deviation of quality across repeated runs.</p>${taskSel()}
+ <div class="scroll"><table class="bars"><thead><tr><th class="rl">Strategy</th><th>Latency</th><th></th><th>Variance</th><th></th></tr></thead><tbody>${d.map(r=>`<tr><td class="n">${esc(r.s)}</td>
+ <td style="width:30%"><div class="bar"><b style="width:${r.p95/mp*100}%;background:var(--violet);opacity:.3"></b><b style="width:${r.p50/mp*100}%;background:var(--violet)"></b></div></td><td class="v">${r.p50.toFixed(1)} s / ${r.p95.toFixed(1)} s</td>
+ <td style="width:24%"><div class="bar"><b style="width:${r.sd/ms*100}%;background:var(--coral)"></b></div></td><td class="v">±${r.sd.toFixed(3)}</td></tr>`).join("")}</tbody></table></div></div>`}
+
+function csv(){return COLS.join(",")+"\n"+rows.map(r=>COLS.map(c=>r[c]).join(",")).join("\n")}
+function data(){
+ return`<div class="panel"><h2>Your results</h2><p class="sub">One row per task and strategy. Quality must be between 0 and 1. Edit the text or paste your own CSV, then apply it.</p>
+ <label for="csv" class="sub">Results as CSV (${COLS.join(", ")})</label><textarea id="csv" spellcheck="false">${esc(csv())}</textarea>
+ <div class="row" style="margin-top:12px"><button class="btn" id="apply">Apply data</button><button class="btn alt" id="reset">Load demo data</button><button class="btn alt" id="clear">Clear all</button></div>
+ <p class="msg ${msg?msg[0]:""}" role="status" id="msg">${msg?esc(msg[1]):""}</p></div>`}
+
+function tpl(){
+ return`<div class="panel"><h2>Prompt templates</h2><p class="sub">Starting points for each strategy. Fill the {{placeholders}} and keep the wording fixed across all runs.</p><div class="tpl">${STRATS.map(s=>`<div><h3>${esc(s)}</h3><pre>${esc(TEMPLATES[s])}</pre><button class="btn alt" data-copy="${esc(s)}">Copy template</button></div>`).join("")}</div></div>`}
+
+function parse(text){
+ const lines=text.trim().split(/\r?\n/).filter(l=>l.trim());if(lines.length<2)throw"Add a header row and at least one data row.";
+ const head=lines[0].split(",").map(s=>s.trim().toLowerCase());if(head.join()!==COLS.join())throw"The header row must be: "+COLS.join(",");
+ return lines.slice(1).map((l,i)=>{const c=l.split(",").map(s=>s.trim());if(c.length!==8)throw`Row ${i+2} needs 8 values, found ${c.length}.`;
+  if(!c[0]||!c[1])throw`Row ${i+2} needs a task and a strategy.`;const n=c.slice(2).map(Number);if(n.some(isNaN))throw`Row ${i+2} has a value that isn’t a number.`;
+  if(n[0]<0||n[0]>1)throw`Row ${i+2}: quality must be between 0 and 1.`;if(n[1]+n[2]<=0||n[3]<=0)throw`Row ${i+2}: tokens and latency must be above 0.`;
+  const o={task:c[0],strategy:c[1]};COLS.slice(2).forEach((k,j)=>o[k]=n[j]);return o})}
+
+function render(){
+ document.getElementById("banner").hidden=!demo;
+ document.getElementById("tabs").innerHTML=TABS.map(([k,l])=>`<button role="tab" aria-selected="${k===tab}" data-t="${k}">${l}</button>`).join("");
+ const v=document.getElementById("view");
+ v.innerHTML=!rows.length&&tab!=="data"&&tab!=="tpl"?`<div class="panel"><h2>No results yet</h2><p class="sub">Open the Data tab and paste your results, or load the demo data to explore.</p></div>`
+  :({heat,cost,var:variance,data,tpl})[tab]();
+}
+document.addEventListener("click",e=>{
+ const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.t){tab=b.dataset.t;msg=null;render()}
+ else if(b.dataset.m){metric=b.dataset.m;render()}
+ else if(b.id==="apply"){try{rows=parse(document.getElementById("csv").value);demo=false;save();msg=["ok",`Applied ${rows.length} rows.`]}catch(x){msg=["err",String(x)]}render()}
+ else if(b.id==="reset"){rows=demoRows();demo=true;save();msg=["ok","Demo data loaded."];render()}
+ else if(b.id==="clear"){rows=[];demo=false;save();msg=["ok","All results cleared. Paste a header row and your data to start."];render()}
+ else if(b.dataset.copy){const t=TEMPLATES[b.dataset.copy];const done=()=>{b.textContent="Copied";setTimeout(()=>b.textContent="Copy template",1500)};
+  const fb=()=>{const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");done()}catch(x){b.textContent="Select and copy manually"}a.remove()};
+  try{navigator.clipboard.writeText(t).then(done,fb)}catch(x){fb()}}
+});
+document.addEventListener("change",e=>{if(e.target.id==="ts"){selTask=e.target.value;render()}});
+load();render();
+</script>
+</body>
+</html>
